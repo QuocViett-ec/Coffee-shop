@@ -202,33 +202,14 @@ class MenuWidget(QWidget, Ui_MenuWidget):
         self.display_products(products)
 
     def handle_add_to_cart(self, product):
-        """Handle add to cart button click"""
-        user_id = self.auth_controller.get_current_user_id()
-
-        if not user_id:
-            QMessageBox.warning(self, "Lỗi", "Vui lòng đăng nhập để thêm vào giỏ hàng")
-            return
-
-        # Add to cart with default options (can be enhanced with customization dialog)
-        success, message = self.cart_controller.add_to_cart(
-            user_id=user_id,
-            product_id=product['id'],
-            size='M',
-            quantity=1
-        )
-
-        if success:
-            QMessageBox.information(self, "Thành công", message)
-            self.cart_updated.emit()
-        else:
-            QMessageBox.warning(self, "Lỗi", message)
+        """Handle add to cart button click - show detail dialog"""
+        # Show product detail dialog for customization
+        self.handle_product_click(product)
 
     def handle_product_click(self, product):
         """Handle product card click - show detail dialog"""
-        # Placeholder for product detail dialog
-        QMessageBox.information(
-            self,
-            product['name'],
-            f"{product.get('description', 'Chưa có mô tả')}\n\n"
-            f"Giá: {format_currency(product['base_price'])}"
-        )
+        from views.product_detail_dialog import ProductDetailDialog
+
+        dialog = ProductDetailDialog(product['id'], self)
+        dialog.product_added.connect(self.cart_updated.emit)
+        dialog.exec()

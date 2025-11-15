@@ -117,39 +117,43 @@ class CoffeeShopApp:
         menu_widget.cart_updated.connect(self.main_window.update_cart_count)
         self.main_window.add_content_page(menu_widget)
 
-        # TODO: Add other content pages (cart, orders, profile, etc.)
-        # Placeholder pages
+        # Import real widgets
+        from views.cart_ex import CartWidget
+        from views.orders_ex import OrdersWidget
+        from views.profile_ex import ProfileWidget
         from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout
 
-        # Cart page placeholder
-        cart_page = QWidget()
-        cart_layout = QVBoxLayout(cart_page)
-        cart_layout.addWidget(QLabel("🛒 Giỏ hàng - Đang phát triển"))
-        self.main_window.add_content_page(cart_page)
+        # Cart page
+        cart_widget = CartWidget()
+        cart_widget.cart_updated.connect(self.main_window.update_cart_count)
+        cart_widget.checkout_requested.connect(lambda: self.handle_checkout(cart_widget))
+        self.main_window.add_content_page(cart_widget)
 
-        # Orders page placeholder
-        orders_page = QWidget()
-        orders_layout = QVBoxLayout(orders_page)
-        orders_layout.addWidget(QLabel("📦 Đơn hàng - Đang phát triển"))
-        self.main_window.add_content_page(orders_page)
+        # Orders page
+        orders_widget = OrdersWidget()
+        self.main_window.add_content_page(orders_widget)
 
-        # Favorites page placeholder
+        # Favorites page (placeholder for now)
         favorites_page = QWidget()
         favorites_layout = QVBoxLayout(favorites_page)
         favorites_layout.addWidget(QLabel("❤️ Yêu thích - Đang phát triển"))
         self.main_window.add_content_page(favorites_page)
 
-        # Profile page placeholder
-        profile_page = QWidget()
-        profile_layout = QVBoxLayout(profile_page)
-        profile_layout.addWidget(QLabel("👤 Tài khoản - Đang phát triển"))
-        self.main_window.add_content_page(profile_page)
+        # Profile page
+        profile_widget = ProfileWidget()
+        self.main_window.add_content_page(profile_widget)
 
-        # Notifications page placeholder
+        # Notifications page (placeholder for now)
         notifications_page = QWidget()
         notifications_layout = QVBoxLayout(notifications_page)
         notifications_layout.addWidget(QLabel("🔔 Thông báo - Đang phát triển"))
         self.main_window.add_content_page(notifications_page)
+
+        # Store references for later use
+        self.menu_widget = menu_widget
+        self.cart_widget = cart_widget
+        self.orders_widget = orders_widget
+        self.profile_widget = profile_widget
 
         # Switch to menu page
         self.main_window.switch_page(0)
@@ -157,6 +161,30 @@ class CoffeeShopApp:
         # Hide stacked widget and show main window
         self.stacked_widget.hide()
         self.main_window.show()
+
+    def handle_checkout(self, cart_widget):
+        """Handle checkout process"""
+        from views.checkout_dialog import CheckoutDialog
+
+        dialog = CheckoutDialog(self.main_window)
+        dialog.order_placed.connect(self.handle_order_placed)
+        dialog.exec()
+
+    def handle_order_placed(self, order_id):
+        """Handle successful order placement"""
+        # Refresh cart
+        if hasattr(self, 'cart_widget'):
+            self.cart_widget.refresh()
+
+        # Refresh orders
+        if hasattr(self, 'orders_widget'):
+            self.orders_widget.refresh()
+
+        # Update cart count
+        self.main_window.update_cart_count()
+
+        # Switch to orders page to show the order
+        self.main_window.switch_page(2)
 
     def handle_logout(self):
         """Handle user logout"""
