@@ -409,10 +409,8 @@ QFrame {
     border-radius: 8px;
 }
 
-/* Labels */
-QLabel {
-    color: #333333;
-}
+/* Labels - moved before specific selectors would override */
+/* Default label color is set in QWidget global style */
 
 #logoLabel {
     color: #c7a17a;

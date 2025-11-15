@@ -42,6 +42,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def load_user_info(self):
         """Load and display user information"""
+        # Set explicit styles for user info labels to ensure visibility
+        self.userNameLabel.setStyleSheet("color: #ffffff; font-weight: bold;")
+        self.userTierLabel.setStyleSheet("color: #ffffff;")
+        self.userPointsLabel.setStyleSheet("color: #ffffff;")
+
         user_data = self.auth_controller.get_current_user()
 
         if user_data:
