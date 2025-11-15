@@ -4,7 +4,7 @@ Display products with filtering and search
 """
 from PyQt6.QtWidgets import (QWidget, QFrame, QVBoxLayout, QHBoxLayout,
                              QLabel, QPushButton, QMessageBox)
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import Qt, pyqtSignal, QByteArray
 from PyQt6.QtGui import QPixmap
 from ui_generated.menu import Ui_MenuWidget
 from controllers.menu_controller import MenuController
@@ -12,6 +12,7 @@ from controllers.cart_controller import CartController
 from controllers.auth_controller import AuthController
 from controllers.favorites_controller import FavoritesController
 from utils.validators import format_currency
+import base64
 
 
 class ProductCard(QFrame):
@@ -44,16 +45,46 @@ class ProductCard(QFrame):
         image_container_layout = QVBoxLayout(image_container)
         image_container_layout.setContentsMargins(0, 0, 0, 0)
 
-        # Product image (placeholder)
+        # Product image
         image_label = QLabel()
         image_label.setFixedSize(220, 220)
         image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        image_label.setText("☕")  # Placeholder
         image_label.setStyleSheet("""
             background-color: #f0f0f0;
             border-radius: 8px;
             font-size: 80px;
         """)
+
+        # Load image from base64 if available
+        product_image = self.product_data.get('image', '')
+        if product_image and product_image.startswith('data:image'):
+            try:
+                # Extract base64 data
+                base64_data = product_image.split(',')[1]
+                image_bytes = base64.b64decode(base64_data)
+
+                # Create pixmap from bytes
+                pixmap = QPixmap()
+                pixmap.loadFromData(QByteArray(image_bytes))
+
+                if not pixmap.isNull():
+                    scaled_pixmap = pixmap.scaled(
+                        220, 220,
+                        Qt.AspectRatioMode.KeepAspectRatio,
+                        Qt.TransformationMode.SmoothTransformation
+                    )
+                    image_label.setPixmap(scaled_pixmap)
+                else:
+                    # Fallback to emoji if image load fails
+                    image_label.setText(product_image if len(product_image) < 5 else "☕")
+            except Exception as e:
+                # Fallback to emoji on error
+                print(f"Error loading product image: {e}")
+                image_label.setText(product_image if len(product_image) < 5 else "☕")
+        else:
+            # Use emoji as fallback (for old products)
+            image_label.setText(product_image if product_image and len(product_image) < 5 else "☕")
+
         image_container_layout.addWidget(image_label)
 
         # Favorite button overlay

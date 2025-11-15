@@ -5,13 +5,15 @@ Product CRUD operations
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
                              QLineEdit, QComboBox, QTableWidget, QTableWidgetItem,
                              QMessageBox, QDialog, QTextEdit, QDoubleSpinBox,
-                             QCheckBox, QDialogButtonBox, QSpinBox, QFormLayout)
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QColor
+                             QCheckBox, QDialogButtonBox, QSpinBox, QFormLayout,
+                             QFileDialog)
+from PyQt6.QtCore import Qt, QByteArray
+from PyQt6.QtGui import QColor, QPixmap
 from controllers.admin_product_controller import AdminProductController
 from controllers.admin_category_controller import AdminCategoryController
 from controllers.admin_controller import AdminController
 from utils.validators import format_currency
+import base64
 
 
 class ProductDialog(QDialog):
@@ -21,9 +23,10 @@ class ProductDialog(QDialog):
         super().__init__(parent)
         self.product = product
         self.is_edit = product is not None
+        self.image_base64 = None  # Store base64 image data
 
         self.setWindowTitle("Sửa sản phẩm" if self.is_edit else "Thêm sản phẩm mới")
-        self.resize(600, 700)
+        self.resize(600, 750)
 
         self.category_controller = AdminCategoryController()
         self.setup_ui()
@@ -55,6 +58,66 @@ class ProductDialog(QDialog):
         self.description_edit.setPlaceholderText("Mô tả sản phẩm...")
         self.description_edit.setMaximumHeight(100)
         form_layout.addRow("Mô tả:", self.description_edit)
+
+        # Image upload
+        image_layout = QVBoxLayout()
+
+        # Image preview
+        self.image_preview = QLabel()
+        self.image_preview.setFixedSize(150, 150)
+        self.image_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.image_preview.setStyleSheet("""
+            QLabel {
+                border: 2px dashed #ccc;
+                border-radius: 8px;
+                background-color: #f5f5f5;
+                font-size: 48px;
+            }
+        """)
+        self.image_preview.setText("📷")
+
+        # Button layout
+        button_layout = QHBoxLayout()
+
+        self.select_image_btn = QPushButton("📁 Chọn ảnh")
+        self.select_image_btn.setMinimumHeight(35)
+        self.select_image_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #2196F3;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #1976D2;
+            }
+        """)
+        self.select_image_btn.clicked.connect(self.select_image)
+        button_layout.addWidget(self.select_image_btn)
+
+        self.clear_image_btn = QPushButton("🗑️ Xóa ảnh")
+        self.clear_image_btn.setMinimumHeight(35)
+        self.clear_image_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #F44336;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+            }
+            QPushButton:hover {
+                background-color: #D32F2F;
+            }
+        """)
+        self.clear_image_btn.clicked.connect(self.clear_image)
+        button_layout.addWidget(self.clear_image_btn)
+
+        image_layout.addWidget(self.image_preview)
+        image_layout.addLayout(button_layout)
+
+        form_layout.addRow("Ảnh sản phẩm:", image_layout)
 
         # Base Price
         self.price_spin = QDoubleSpinBox()
@@ -123,6 +186,75 @@ class ProductDialog(QDialog):
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
 
+    def select_image(self):
+        """Select and convert image to base64"""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Chọn ảnh sản phẩm",
+            "",
+            "Images (*.png *.jpg *.jpeg *.gif *.bmp *.webp)"
+        )
+
+        if file_path:
+            try:
+                # Read image file
+                with open(file_path, 'rb') as image_file:
+                    image_data = image_file.read()
+
+                # Convert to base64
+                self.image_base64 = base64.b64encode(image_data).decode('utf-8')
+
+                # Determine image format
+                if file_path.lower().endswith('.png'):
+                    image_format = 'png'
+                elif file_path.lower().endswith(('.jpg', '.jpeg')):
+                    image_format = 'jpeg'
+                elif file_path.lower().endswith('.gif'):
+                    image_format = 'gif'
+                elif file_path.lower().endswith('.webp'):
+                    image_format = 'webp'
+                else:
+                    image_format = 'jpeg'
+
+                # Create data URI
+                self.image_base64 = f"data:image/{image_format};base64,{self.image_base64}"
+
+                # Show preview
+                pixmap = QPixmap(file_path)
+                if not pixmap.isNull():
+                    scaled_pixmap = pixmap.scaled(
+                        150, 150,
+                        Qt.AspectRatioMode.KeepAspectRatio,
+                        Qt.TransformationMode.SmoothTransformation
+                    )
+                    self.image_preview.setPixmap(scaled_pixmap)
+                    self.image_preview.setStyleSheet("""
+                        QLabel {
+                            border: 2px solid #4CAF50;
+                            border-radius: 8px;
+                            background-color: #f5f5f5;
+                        }
+                    """)
+
+                QMessageBox.information(self, "Thành công", "Đã tải ảnh lên thành công!")
+
+            except Exception as e:
+                QMessageBox.warning(self, "Lỗi", f"Không thể đọc file ảnh: {str(e)}")
+
+    def clear_image(self):
+        """Clear image"""
+        self.image_base64 = None
+        self.image_preview.clear()
+        self.image_preview.setText("📷")
+        self.image_preview.setStyleSheet("""
+            QLabel {
+                border: 2px dashed #ccc;
+                border-radius: 8px;
+                background-color: #f5f5f5;
+                font-size: 48px;
+            }
+        """)
+
     def load_product_data(self):
         """Load product data for editing"""
         self.name_edit.setText(self.product['name'])
@@ -133,6 +265,40 @@ class ProductDialog(QDialog):
             self.category_combo.setCurrentIndex(idx)
 
         self.description_edit.setPlainText(self.product.get('description', ''))
+
+        # Load image if exists
+        if self.product.get('image'):
+            image_str = self.product['image']
+            self.image_base64 = image_str
+
+            # Check if it's base64 data URI
+            if image_str.startswith('data:image'):
+                try:
+                    # Extract base64 data
+                    base64_data = image_str.split(',')[1]
+                    image_bytes = base64.b64decode(base64_data)
+
+                    # Create pixmap from bytes
+                    pixmap = QPixmap()
+                    pixmap.loadFromData(QByteArray(image_bytes))
+
+                    if not pixmap.isNull():
+                        scaled_pixmap = pixmap.scaled(
+                            150, 150,
+                            Qt.AspectRatioMode.KeepAspectRatio,
+                            Qt.TransformationMode.SmoothTransformation
+                        )
+                        self.image_preview.setPixmap(scaled_pixmap)
+                        self.image_preview.setStyleSheet("""
+                            QLabel {
+                                border: 2px solid #4CAF50;
+                                border-radius: 8px;
+                                background-color: #f5f5f5;
+                            }
+                        """)
+                except Exception as e:
+                    print(f"Error loading image: {e}")
+
         self.price_spin.setValue(float(self.product['base_price']))
         self.ingredients_edit.setText(self.product.get('ingredients', ''))
 
@@ -149,7 +315,7 @@ class ProductDialog(QDialog):
 
     def get_data(self):
         """Get form data"""
-        return {
+        data = {
             'name': self.name_edit.text().strip(),
             'category_id': self.category_combo.currentData(),
             'description': self.description_edit.toPlainText().strip(),
@@ -165,6 +331,12 @@ class ProductDialog(QDialog):
             'is_seasonal': self.seasonal_check.isChecked(),
             'is_available': self.available_check.isChecked()
         }
+
+        # Add image if uploaded
+        if self.image_base64:
+            data['image'] = self.image_base64
+
+        return data
 
 
 class AdminProductsWidget(QWidget):
