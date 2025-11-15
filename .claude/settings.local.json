@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir \"C:\\Coffee-shop\\views\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
