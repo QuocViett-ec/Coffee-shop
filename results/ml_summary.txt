@@ -1,0 +1,45 @@
+MACHINE LEARNING MODELS SUMMARY
+======================================================================
+
+Training samples: 122
+Validation samples: 15
+Test samples: 16
+Features: 73
+Date range: 2023-01-29 00:00:00 to 2023-06-30 00:00:00
+
+Model Performance:
+----------------------------------------------------------------------
+                     RMSE         MAE       MAPE        R2         MBD
+lightgbm       563.097252  531.144397   9.091000 -0.387612 -524.909954
+random_forest  855.605673  738.325901  12.507576 -2.203675 -730.804520
+xgboost        813.188746  776.175370  13.325385 -1.893902 -776.175370
+
+🏆 Best ML Model: LIGHTGBM
+   MAPE: 9.09%
+   RMSE: $563.10
+   MAE: $531.14
+   R²: -0.3876
+
+
+Top 20 Features (LIGHTGBM):
+----------------------------------------------------------------------
+ 1. revenue_change_1d                       : 32.000000
+ 2. revenue_pct_change_1d                   : 26.000000
+ 3. revenue_lag_7                           : 23.000000
+ 4. revenue_change_7d                       : 21.000000
+ 5. rolling_mean_7_x_dayofweek              : 17.000000
+ 6. revenue_momentum_3d                     : 15.000000
+ 7. revenue_rolling_range_14                : 14.000000
+ 8. revenue_pct_change_7d                   : 14.000000
+ 9. revenue_distance_from_ma_7              : 14.000000
+10. revenue_distance_from_ma_28             : 14.000000
+11. dayofyear                               : 12.000000
+12. revenue_cv_14                           : 12.000000
+13. revenue_rolling_range_3                 : 12.000000
+14. dayofyear_sin                           : 12.000000
+15. day_sin                                 : 11.000000
+16. dayofyear_cos                           : 9.000000
+17. revenue_rolling_std_28                  : 9.000000
+18. revenue_lag_1                           : 9.000000
+19. week_sin                                : 8.000000
+20. revenue_cv_7                            : 7.000000

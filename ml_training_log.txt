@@ -1,0 +1,52 @@
+======================================================================
+ MACHINE LEARNING MODELS TRAINING & EVALUATION
+======================================================================
+
+[1/5] Loading feature-engineered data...
+✓ Loaded: X shape (153, 73), y shape (153,)
+
+[2/5] Creating train/val/test split...
+
+Time Series Split Summary:
+======================================================================
+Total samples: 153
+
+Train set: 122 samples (79.7%)
+  Date range: 2023-01-29 00:00:00 to 2023-05-30 00:00:00
+
+Validation set: 15 samples (9.8%)
+  Date range: 2023-05-31 00:00:00 to 2023-06-14 00:00:00
+
+Test set: 16 samples (10.5%)
+  Date range: 2023-06-15 00:00:00 to 2023-06-30 00:00:00
+======================================================================
+
+[3/5] Training ML models (XGBoost, LightGBM, Random Forest)...
+
+======================================================================
+TRAINING MACHINE LEARNING MODELS
+======================================================================
+
+======================================================================
+Model: XGBOOST
+======================================================================
+
+[XGBoost] Training...
+Traceback (most recent call last):
+  File "/home/user/Coffee-shop/run_ml_models.py", line 200, in <module>
+    models, results = main()
+                      ^^^^^^
+  File "/home/user/Coffee-shop/run_ml_models.py", line 144, in main
+    results, models = compare_ml_models(X_train, y_train, X_val, y_val, X_test, y_test)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Coffee-shop/src/models/ml_models.py", line 368, in compare_ml_models
+    forecaster.train(X_train, y_train, X_val, y_val)
+  File "/home/user/Coffee-shop/src/models/ml_models.py", line 192, in train
+    return self.train_xgboost(X_train, y_train, X_val, y_val, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Coffee-shop/src/models/ml_models.py", line 80, in train_xgboost
+    self.model.fit(
+  File "/usr/local/lib/python3.11/dist-packages/xgboost/core.py", line 774, in inner_f
+    return func(**kwargs)
+           ^^^^^^^^^^^^^^
+TypeError: XGBModel.fit() got an unexpected keyword argument 'early_stopping_rounds'
