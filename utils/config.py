@@ -78,3 +78,7 @@ REVIEWS_PER_PAGE = 10
 # Cache Settings
 ENABLE_CACHE = True
 CACHE_DURATION = 300  # 5 minutes
+
+USE_MODERN_THEME = True   # Set to False for classic theme
+MODERN_STYLESHEET = STYLES_DIR / 'modern_style.qss'
+CLASSIC_STYLESHEET = STYLES_DIR / 'style.qss'
