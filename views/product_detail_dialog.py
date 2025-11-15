@@ -76,7 +76,7 @@ class ProductDetailDialog(QDialog):
         # Description
         self.description_label = QLabel()
         self.description_label.setWordWrap(True)
-        self.description_label.setStyleSheet("padding: 10px 0; line-height: 1.5;")
+        self.description_label.setStyleSheet("padding: 10px 0; line-height: 1.5; color: #333;")
         layout.addWidget(self.description_label)
 
         # Ingredients
@@ -85,11 +85,12 @@ class ProductDetailDialog(QDialog):
         ingredients_layout = QVBoxLayout(ingredients_frame)
 
         ingredients_title = QLabel("📝 Thành phần:")
-        ingredients_title.setStyleSheet("font-weight: bold;")
+        ingredients_title.setStyleSheet("font-weight: bold; color: #333;")
         ingredients_layout.addWidget(ingredients_title)
 
         self.ingredients_label = QLabel()
         self.ingredients_label.setWordWrap(True)
+        self.ingredients_label.setStyleSheet("color: #555;")
         ingredients_layout.addWidget(self.ingredients_label)
 
         layout.addWidget(ingredients_frame)
@@ -105,7 +106,7 @@ class ProductDetailDialog(QDialog):
         size_layout = QVBoxLayout(size_frame)
 
         size_label = QLabel("📏 Kích thước:")
-        size_label.setStyleSheet("font-weight: bold; font-size: 14px;")
+        size_label.setStyleSheet("font-weight: bold; font-size: 14px; color: #333;")
         size_layout.addWidget(size_label)
 
         self.size_group = QButtonGroup()
@@ -137,7 +138,7 @@ class ProductDetailDialog(QDialog):
         temp_layout = QVBoxLayout(temp_frame)
 
         temp_label = QLabel("🌡️ Nhiệt độ:")
-        temp_label.setStyleSheet("font-weight: bold; font-size: 14px;")
+        temp_label.setStyleSheet("font-weight: bold; font-size: 14px; color: #333;")
         temp_layout.addWidget(temp_label)
 
         self.temp_group = QButtonGroup()
@@ -161,7 +162,7 @@ class ProductDetailDialog(QDialog):
         sugar_layout = QVBoxLayout(sugar_frame)
 
         sugar_label = QLabel("🍬 Độ ngọt:")
-        sugar_label.setStyleSheet("font-weight: bold; font-size: 14px;")
+        sugar_label.setStyleSheet("font-weight: bold; font-size: 14px; color: #333;")
         sugar_layout.addWidget(sugar_label)
 
         sugar_control_layout = QHBoxLayout()
@@ -177,7 +178,7 @@ class ProductDetailDialog(QDialog):
 
         self.sugar_value_label = QLabel("50%")
         self.sugar_value_label.setMinimumWidth(50)
-        self.sugar_value_label.setStyleSheet("font-weight: bold;")
+        self.sugar_value_label.setStyleSheet("font-weight: bold; color: #333;")
         sugar_control_layout.addWidget(self.sugar_value_label)
 
         sugar_layout.addLayout(sugar_control_layout)
@@ -189,7 +190,7 @@ class ProductDetailDialog(QDialog):
         ice_layout = QVBoxLayout(ice_frame)
 
         ice_label = QLabel("🧊 Lượng đá:")
-        ice_label.setStyleSheet("font-weight: bold; font-size: 14px;")
+        ice_label.setStyleSheet("font-weight: bold; font-size: 14px; color: #333;")
         ice_layout.addWidget(ice_label)
 
         ice_control_layout = QHBoxLayout()
@@ -205,7 +206,7 @@ class ProductDetailDialog(QDialog):
 
         self.ice_value_label = QLabel("50%")
         self.ice_value_label.setMinimumWidth(50)
-        self.ice_value_label.setStyleSheet("font-weight: bold;")
+        self.ice_value_label.setStyleSheet("font-weight: bold; color: #333;")
         ice_control_layout.addWidget(self.ice_value_label)
 
         ice_layout.addLayout(ice_control_layout)
@@ -217,7 +218,7 @@ class ProductDetailDialog(QDialog):
         toppings_layout = QVBoxLayout(toppings_frame)
 
         toppings_label = QLabel("🧋 Topping:")
-        toppings_label.setStyleSheet("font-weight: bold; font-size: 14px;")
+        toppings_label.setStyleSheet("font-weight: bold; font-size: 14px; color: #333;")
         toppings_layout.addWidget(toppings_label)
 
         self.toppings_checkboxes_layout = QVBoxLayout()
@@ -231,7 +232,7 @@ class ProductDetailDialog(QDialog):
         quantity_layout = QHBoxLayout(quantity_frame)
 
         quantity_label = QLabel("Số lượng:")
-        quantity_label.setStyleSheet("font-weight: bold;")
+        quantity_label.setStyleSheet("font-weight: bold; color: #333;")
         quantity_layout.addWidget(quantity_label)
 
         self.quantity_spin = QSpinBox()
@@ -265,6 +266,23 @@ class ProductDetailDialog(QDialog):
         self.add_to_cart_btn = QPushButton("Thêm vào giỏ hàng")
         self.add_to_cart_btn.setMinimumHeight(45)
         self.add_to_cart_btn.setMinimumWidth(200)
+        self.add_to_cart_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #c7a17a;
+                color: white;
+                border: none;
+                padding: 10px;
+                border-radius: 8px;
+                font-weight: bold;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                background-color: #b8926b;
+            }
+            QPushButton:pressed {
+                background-color: #a07856;
+            }
+        """)
         self.add_to_cart_btn.clicked.connect(self.handle_add_to_cart)
         bottom_layout.addWidget(self.add_to_cart_btn)
 

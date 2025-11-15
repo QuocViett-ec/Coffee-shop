@@ -10,6 +10,7 @@ from ui_generated.menu import Ui_MenuWidget
 from controllers.menu_controller import MenuController
 from controllers.cart_controller import CartController
 from controllers.auth_controller import AuthController
+from controllers.favorites_controller import FavoritesController
 from utils.validators import format_currency
 
 
@@ -18,11 +19,16 @@ class ProductCard(QFrame):
 
     add_to_cart_clicked = pyqtSignal(dict)
     product_clicked = pyqtSignal(dict)
+    favorite_toggled = pyqtSignal()
 
     def __init__(self, product_data, parent=None):
         super().__init__(parent)
         self.product_data = product_data
+        self.favorites_controller = FavoritesController()
+        self.auth_controller = AuthController()
+        self.is_favorite = False
         self.setup_ui()
+        self.check_favorite_status()
 
     def setup_ui(self):
         """Setup product card UI"""
@@ -32,13 +38,44 @@ class ProductCard(QFrame):
 
         layout = QVBoxLayout(self)
 
+        # Image container with favorite button overlay
+        image_container = QFrame()
+        image_container.setFixedSize(220, 220)
+        image_container_layout = QVBoxLayout(image_container)
+        image_container_layout.setContentsMargins(0, 0, 0, 0)
+
         # Product image (placeholder)
         image_label = QLabel()
         image_label.setFixedSize(220, 220)
         image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        image_label.setText("📷")  # Placeholder
-        image_label.setStyleSheet("background-color: #f0f0f0; border-radius: 8px;")
-        layout.addWidget(image_label)
+        image_label.setText("☕")  # Placeholder
+        image_label.setStyleSheet("""
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            font-size: 80px;
+        """)
+        image_container_layout.addWidget(image_label)
+
+        # Favorite button overlay
+        self.favorite_btn = QPushButton()
+        self.favorite_btn.setFixedSize(35, 35)
+        self.favorite_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(255, 255, 255, 0.9);
+                border: none;
+                border-radius: 17px;
+                font-size: 18px;
+                padding: 0px;
+            }
+            QPushButton:hover {
+                background-color: white;
+            }
+        """)
+        self.favorite_btn.clicked.connect(self.toggle_favorite)
+        self.favorite_btn.setParent(image_container)
+        self.favorite_btn.move(180, 5)  # Position in top-right corner
+
+        layout.addWidget(image_container)
 
         # Product name
         name_label = QLabel(self.product_data['name'])
@@ -72,11 +109,45 @@ class ProductCard(QFrame):
         if event.button() == Qt.MouseButton.LeftButton:
             self.product_clicked.emit(self.product_data)
 
+    def check_favorite_status(self):
+        """Check if product is in favorites"""
+        user_id = self.auth_controller.get_current_user_id()
+        if not user_id:
+            self.is_favorite = False
+        else:
+            self.is_favorite = self.favorites_controller.is_favorite(user_id, self.product_data['id'])
+
+        self.update_favorite_button()
+
+    def update_favorite_button(self):
+        """Update favorite button icon"""
+        if self.is_favorite:
+            self.favorite_btn.setText("❤️")
+        else:
+            self.favorite_btn.setText("🤍")
+
+    def toggle_favorite(self):
+        """Toggle favorite status"""
+        user_id = self.auth_controller.get_current_user_id()
+        if not user_id:
+            QMessageBox.warning(self, "Lỗi", "Vui lòng đăng nhập")
+            return
+
+        success, message = self.favorites_controller.toggle_favorite(user_id, self.product_data['id'])
+
+        if success:
+            self.is_favorite = not self.is_favorite
+            self.update_favorite_button()
+            self.favorite_toggled.emit()
+        else:
+            QMessageBox.warning(self, "Lỗi", message)
+
 
 class MenuWidget(QWidget, Ui_MenuWidget):
     """Menu widget with product display and filtering"""
 
     cart_updated = pyqtSignal()
+    favorites_updated = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -137,6 +208,7 @@ class MenuWidget(QWidget, Ui_MenuWidget):
             card = ProductCard(product)
             card.add_to_cart_clicked.connect(self.handle_add_to_cart)
             card.product_clicked.connect(self.handle_product_click)
+            card.favorite_toggled.connect(self.favorites_updated.emit)
 
             self.productsGridLayout.addWidget(card, row, col)
 

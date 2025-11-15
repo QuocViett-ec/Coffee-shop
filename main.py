@@ -114,13 +114,13 @@ class CoffeeShopApp:
 
         # Create and add menu widget
         menu_widget = MenuWidget()
-        menu_widget.cart_updated.connect(self.main_window.update_cart_count)
         self.main_window.add_content_page(menu_widget)
 
         # Import real widgets
         from views.cart_ex import CartWidget
         from views.orders_ex import OrdersWidget
         from views.profile_ex import ProfileWidget
+        from views.favorites_ex import FavoritesWidget
         from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout
 
         # Cart page
@@ -133,11 +133,9 @@ class CoffeeShopApp:
         orders_widget = OrdersWidget()
         self.main_window.add_content_page(orders_widget)
 
-        # Favorites page (placeholder for now)
-        favorites_page = QWidget()
-        favorites_layout = QVBoxLayout(favorites_page)
-        favorites_layout.addWidget(QLabel("❤️ Yêu thích - Đang phát triển"))
-        self.main_window.add_content_page(favorites_page)
+        # Favorites page
+        favorites_widget = FavoritesWidget()
+        self.main_window.add_content_page(favorites_widget)
 
         # Profile page
         profile_widget = ProfileWidget()
@@ -153,7 +151,17 @@ class CoffeeShopApp:
         self.menu_widget = menu_widget
         self.cart_widget = cart_widget
         self.orders_widget = orders_widget
+        self.favorites_widget = favorites_widget
         self.profile_widget = profile_widget
+
+        # Connect cart update signals
+        menu_widget.cart_updated.connect(self.main_window.update_cart_count)
+        menu_widget.cart_updated.connect(cart_widget.refresh)
+        cart_widget.cart_updated.connect(self.main_window.update_cart_count)
+
+        # Connect favorites update signals
+        menu_widget.favorites_updated.connect(favorites_widget.refresh)
+        favorites_widget.favorites_updated.connect(menu_widget.load_products)
 
         # Switch to menu page
         self.main_window.switch_page(0)

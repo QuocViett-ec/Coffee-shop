@@ -1,0 +1,214 @@
+"""
+Favorites Widget - Extended Logic
+Display and manage favorite products
+"""
+from PyQt6.QtWidgets import (QWidget, QFrame, QVBoxLayout, QHBoxLayout,
+                             QLabel, QPushButton, QMessageBox)
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QPixmap
+from ui_generated.favorites import Ui_FavoritesWidget
+from controllers.favorites_controller import FavoritesController
+from controllers.auth_controller import AuthController
+from utils.validators import format_currency
+
+
+class FavoriteProductCard(QFrame):
+    """Favorite product card widget"""
+
+    remove_clicked = pyqtSignal(dict)
+    product_clicked = pyqtSignal(dict)
+    add_to_cart_clicked = pyqtSignal(dict)
+
+    def __init__(self, product_data, parent=None):
+        super().__init__(parent)
+        self.product_data = product_data
+        self.setup_ui()
+
+    def setup_ui(self):
+        """Setup product card UI"""
+        self.setFrameShape(QFrame.Shape.Box)
+        self.setMaximumWidth(250)
+        self.setMinimumHeight(350)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+
+        layout = QVBoxLayout(self)
+
+        # Product image (placeholder)
+        image_label = QLabel()
+        image_label.setFixedSize(220, 220)
+        image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        image_label.setText("☕")  # Placeholder
+        image_label.setStyleSheet("""
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            font-size: 80px;
+        """)
+        layout.addWidget(image_label)
+
+        # Product name
+        name_label = QLabel(self.product_data['name'])
+        name_label.setWordWrap(True)
+        name_label.setStyleSheet("font-weight: bold; font-size: 14px;")
+        layout.addWidget(name_label)
+
+        # Price
+        price = format_currency(self.product_data['base_price'])
+        price_label = QLabel(price)
+        price_label.setStyleSheet("color: #d4691e; font-size: 16px; font-weight: bold;")
+        layout.addWidget(price_label)
+
+        # Rating
+        rating = self.product_data.get('rating', 0)
+        total_reviews = self.product_data.get('total_reviews', 0)
+        rating_label = QLabel(f"⭐ {rating:.1f} ({total_reviews} đánh giá)")
+        rating_label.setStyleSheet("font-size: 12px; color: #666;")
+        layout.addWidget(rating_label)
+
+        # Buttons layout
+        buttons_layout = QHBoxLayout()
+
+        # Add to cart button
+        add_btn = QPushButton("Thêm vào giỏ")
+        add_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #c7a17a;
+                color: white;
+                border: none;
+                padding: 8px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #b8926b;
+            }
+        """)
+        add_btn.clicked.connect(lambda: self.add_to_cart_clicked.emit(self.product_data))
+        buttons_layout.addWidget(add_btn)
+
+        # Remove from favorites button
+        remove_btn = QPushButton("💔")
+        remove_btn.setFixedWidth(40)
+        remove_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #ff4444;
+                color: white;
+                border: none;
+                padding: 8px;
+                border-radius: 4px;
+                font-size: 16px;
+            }
+            QPushButton:hover {
+                background-color: #cc0000;
+            }
+        """)
+        remove_btn.clicked.connect(lambda: self.remove_clicked.emit(self.product_data))
+        buttons_layout.addWidget(remove_btn)
+
+        layout.addLayout(buttons_layout)
+
+    def mousePressEvent(self, event):
+        """Handle card click"""
+        if event.button() == Qt.MouseButton.LeftButton:
+            # Don't trigger if clicked on buttons
+            if not self.childAt(event.pos()) or not isinstance(self.childAt(event.pos()), QPushButton):
+                self.product_clicked.emit(self.product_data)
+
+
+class FavoritesWidget(QWidget, Ui_FavoritesWidget):
+    """Favorites widget with product display"""
+
+    favorites_updated = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setupUi(self)
+
+        self.favorites_controller = FavoritesController()
+        self.auth_controller = AuthController()
+
+        # Load favorites
+        self.load_favorites()
+
+    def load_favorites(self):
+        """Load and display favorite products"""
+        user_id = self.auth_controller.get_current_user_id()
+        if not user_id:
+            return
+
+        # Clear existing products
+        while self.favoritesGridLayout.count():
+            item = self.favoritesGridLayout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+        # Get favorite products
+        products = self.favorites_controller.get_favorite_products(user_id)
+
+        # Update count
+        self.favoritesCountLabel.setText(f"{len(products)} sản phẩm")
+
+        if not products:
+            # Show empty state
+            empty_label = QLabel("❤️\n\nChưa có sản phẩm yêu thích\n\nHãy thêm sản phẩm yêu thích từ menu!")
+            empty_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            empty_label.setStyleSheet("font-size: 16px; color: #999; padding: 50px;")
+            self.favoritesGridLayout.addWidget(empty_label, 0, 0, 1, 3)
+            return
+
+        # Add products to grid
+        row = 0
+        col = 0
+        max_cols = 3
+
+        for product in products:
+            card = FavoriteProductCard(product)
+            card.remove_clicked.connect(self.handle_remove_favorite)
+            card.product_clicked.connect(self.handle_product_click)
+            card.add_to_cart_clicked.connect(self.handle_add_to_cart)
+
+            self.favoritesGridLayout.addWidget(card, row, col)
+
+            col += 1
+            if col >= max_cols:
+                col = 0
+                row += 1
+
+    def handle_remove_favorite(self, product):
+        """Handle remove from favorites"""
+        user_id = self.auth_controller.get_current_user_id()
+        if not user_id:
+            return
+
+        # Confirm removal
+        reply = QMessageBox.question(
+            self,
+            "Xác nhận",
+            f"Bạn có muốn xóa '{product['name']}' khỏi danh sách yêu thích?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+
+        if reply == QMessageBox.StandardButton.Yes:
+            success, message = self.favorites_controller.remove_favorite(user_id, product['id'])
+
+            if success:
+                # Reload favorites
+                self.load_favorites()
+                self.favorites_updated.emit()
+            else:
+                QMessageBox.warning(self, "Lỗi", message)
+
+    def handle_product_click(self, product):
+        """Handle product card click - show detail dialog"""
+        from views.product_detail_dialog import ProductDetailDialog
+
+        dialog = ProductDetailDialog(product['id'], self)
+        dialog.product_added.connect(self.favorites_updated.emit)
+        dialog.exec()
+
+    def handle_add_to_cart(self, product):
+        """Handle add to cart button - show detail dialog"""
+        self.handle_product_click(product)
+
+    def refresh(self):
+        """Refresh favorites display"""
+        self.load_favorites()
