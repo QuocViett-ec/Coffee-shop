@@ -139,29 +139,25 @@ class CoffeeShopAdminApp:
         orders_widget = AdminOrdersWidget()
         self.main_window.add_content_page(orders_widget)
 
-        # Products management (placeholder for now)
-        products_page = QWidget()
-        products_layout = QVBoxLayout(products_page)
-        products_layout.addWidget(QLabel("☕ Quản lý sản phẩm - Đang phát triển"))
-        self.main_window.add_content_page(products_page)
+        # Products management
+        from views.admin_products_ex import AdminProductsWidget
+        products_widget = AdminProductsWidget()
+        self.main_window.add_content_page(products_widget)
 
-        # Users management (placeholder for now)
-        users_page = QWidget()
-        users_layout = QVBoxLayout(users_page)
-        users_layout.addWidget(QLabel("👥 Quản lý khách hàng - Đang phát triển"))
-        self.main_window.add_content_page(users_page)
+        # Users management
+        from views.admin_users_ex import AdminUsersWidget
+        users_widget = AdminUsersWidget()
+        self.main_window.add_content_page(users_widget)
 
-        # Categories management (placeholder for now)
-        categories_page = QWidget()
-        categories_layout = QVBoxLayout(categories_page)
-        categories_layout.addWidget(QLabel("📂 Quản lý danh mục - Đang phát triển"))
-        self.main_window.add_content_page(categories_page)
+        # Categories management
+        from views.admin_categories_ex import AdminCategoriesWidget
+        categories_widget = AdminCategoriesWidget()
+        self.main_window.add_content_page(categories_widget)
 
-        # Vouchers management (placeholder for now)
-        vouchers_page = QWidget()
-        vouchers_layout = QVBoxLayout(vouchers_page)
-        vouchers_layout.addWidget(QLabel("🎫 Quản lý voucher - Đang phát triển"))
-        self.main_window.add_content_page(vouchers_page)
+        # Vouchers management
+        from views.admin_vouchers_ex import AdminVouchersWidget
+        vouchers_widget = AdminVouchersWidget()
+        self.main_window.add_content_page(vouchers_widget)
 
         # Reports (placeholder for now)
         reports_page = QWidget()
