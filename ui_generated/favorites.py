@@ -40,11 +40,14 @@ class Ui_FavoritesWidget:
         scroll.setWidgetResizable(True)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setStyleSheet("background-color: white;")
 
         scroll_content = QWidget()
+        scroll_content.setStyleSheet("background-color: white;")
         self.favoritesGridLayout = QGridLayout(scroll_content)
-        self.favoritesGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
+        self.favoritesGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
         self.favoritesGridLayout.setSpacing(20)
+        self.favoritesGridLayout.setContentsMargins(20, 20, 20, 20)
 
         scroll.setWidget(scroll_content)
         main_layout.addWidget(scroll)

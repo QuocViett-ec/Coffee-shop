@@ -148,24 +148,27 @@ class FavoritesWidget(QWidget, Ui_FavoritesWidget):
         self.favoritesCountLabel.setText(f"{len(products)} sản phẩm")
 
         if not products:
-            # Show empty state - centered
-            empty_widget = QWidget()
-            empty_layout = QVBoxLayout(empty_widget)
-            empty_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            # Show empty state - centered in the entire scroll area
+            # Clear grid layout alignment to allow proper centering
+            self.favoritesGridLayout.setAlignment(Qt.AlignmentFlag.AlignCenter)
             
             empty_label = QLabel("❤️\n\nChưa có sản phẩm yêu thích\n\nHãy thêm sản phẩm yêu thích từ menu!")
             empty_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             empty_label.setStyleSheet("font-size: 18px; color: #999; padding: 50px;")
-            empty_layout.addWidget(empty_label)
             
-            # Add to grid layout spanning all columns with center alignment
-            self.favoritesGridLayout.addWidget(empty_widget, 0, 0, 1, 3, Qt.AlignmentFlag.AlignCenter)
+            # Add to grid layout at center position
+            self.favoritesGridLayout.addWidget(empty_label, 0, 0, Qt.AlignmentFlag.AlignCenter)
             return
 
-        # Add products to grid
+        # Add products to grid - dynamic columns based on available width
+        # Reset alignment to left for products
+        self.favoritesGridLayout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        
         row = 0
         col = 0
-        max_cols = 3
+        # Calculate max columns based on card width (250) + spacing (20)
+        # Will allow more products per row on wider screens
+        max_cols = max(4, int(self.width() / 270))  # At least 4 columns
 
         for product in products:
             card = FavoriteProductCard(product)
