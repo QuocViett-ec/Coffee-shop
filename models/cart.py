@@ -55,7 +55,7 @@ class Cart:
         """Get all cart items for a user with product details"""
         query = """
             SELECT c.*, p.name as product_name, p.name_en as product_name_en,
-                   p.image_url, p.base_price, p.is_available
+                   p.image as product_image, p.base_price, p.is_available
             FROM cart c
             JOIN products p ON c.product_id = p.id
             WHERE c.user_id = %s

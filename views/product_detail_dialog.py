@@ -6,11 +6,13 @@ from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel,
                              QPushButton, QRadioButton, QCheckBox, QSlider,
                              QButtonGroup, QFrame, QScrollArea, QWidget,
                              QSpinBox, QMessageBox)
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import Qt, pyqtSignal, QByteArray
+from PyQt6.QtGui import QPixmap
 from controllers.menu_controller import MenuController
 from controllers.cart_controller import CartController
 from controllers.auth_controller import AuthController
 from utils.validators import format_currency
+import base64
 
 
 class ProductDetailDialog(QDialog):
@@ -298,7 +300,35 @@ class ProductDetailDialog(QDialog):
             return
 
         # Set product info
-        self.image_label.setText("☕")  # Placeholder
+        # Load product image from base64 if available
+        product_image = self.product.get('image', '')
+        if product_image and product_image.startswith('data:image'):
+            try:
+                # Extract base64 data
+                base64_data = product_image.split(',')[1]
+                image_bytes = base64.b64decode(base64_data)
+
+                # Create pixmap from bytes
+                pixmap = QPixmap()
+                pixmap.loadFromData(QByteArray(image_bytes))
+
+                if not pixmap.isNull():
+                    scaled_pixmap = pixmap.scaled(
+                        600, 300,
+                        Qt.AspectRatioMode.KeepAspectRatio,
+                        Qt.TransformationMode.SmoothTransformation
+                    )
+                    self.image_label.setPixmap(scaled_pixmap)
+                else:
+                    # Fallback to emoji
+                    self.image_label.setText(product_image if len(product_image) < 5 else "☕")
+            except Exception as e:
+                print(f"Error loading product image: {e}")
+                self.image_label.setText(product_image if len(product_image) < 5 else "☕")
+        else:
+            # Use emoji as fallback
+            self.image_label.setText(product_image if product_image and len(product_image) < 5 else "☕")
+
         self.name_label.setText(self.product['name'])
         self.description_label.setText(self.product.get('description', 'Chưa có mô tả'))
         self.ingredients_label.setText(self.product.get('ingredients', 'Chưa có thông tin'))

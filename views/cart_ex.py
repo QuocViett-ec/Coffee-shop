@@ -4,12 +4,13 @@ Full shopping cart implementation
 """
 from PyQt6.QtWidgets import (QWidget, QFrame, QHBoxLayout, QVBoxLayout, QLabel,
                              QPushButton, QSpinBox, QMessageBox)
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import Qt, pyqtSignal, QByteArray
 from PyQt6.QtGui import QPixmap
 from ui_generated.cart import Ui_CartWidget
 from controllers.cart_controller import CartController
 from controllers.auth_controller import AuthController
 from utils.validators import format_currency
+import base64
 
 
 class CartItemWidget(QFrame):
@@ -34,12 +35,41 @@ class CartItemWidget(QFrame):
         image_label = QLabel()
         image_label.setFixedSize(100, 100)
         image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        image_label.setText("☕")
         image_label.setStyleSheet("""
             background-color: #f0f0f0;
             border-radius: 8px;
             font-size: 40px;
         """)
+
+        # Load image from base64 if available
+        product_image = self.item_data.get('product_image', '')
+        if product_image and product_image.startswith('data:image'):
+            try:
+                # Extract base64 data
+                base64_data = product_image.split(',')[1]
+                image_bytes = base64.b64decode(base64_data)
+
+                # Create pixmap from bytes
+                pixmap = QPixmap()
+                pixmap.loadFromData(QByteArray(image_bytes))
+
+                if not pixmap.isNull():
+                    scaled_pixmap = pixmap.scaled(
+                        100, 100,
+                        Qt.AspectRatioMode.KeepAspectRatio,
+                        Qt.TransformationMode.SmoothTransformation
+                    )
+                    image_label.setPixmap(scaled_pixmap)
+                else:
+                    # Fallback to emoji
+                    image_label.setText(product_image if len(product_image) < 5 else "☕")
+            except Exception as e:
+                print(f"Error loading cart item image: {e}")
+                image_label.setText(product_image if len(product_image) < 5 else "☕")
+        else:
+            # Use emoji as fallback
+            image_label.setText(product_image if product_image and len(product_image) < 5 else "☕")
+
         main_layout.addWidget(image_label)
 
         # Product info
